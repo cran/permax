@@ -1,23 +1,23 @@
 \name{plot.permax}
 \alias{plot.permax}
 \title{
-Image plot of the most significant genes (attributes) from a permax()
+Image plot of the most significant genes (attributes) from a permax
 analysis 
 }
 \description{
-Given the output of permax(), and the array of expression levels,
+Given the output of \code{permax}, and the array of expression levels,
 creates a color image plot of the expression levels of the most
 significant genes 
 }
 \usage{
-plot.permax(Z, data, nl=25, nr=25, logs=T, ig1=NULL, ig2=NULL, \dots)
+plot.permax(x, data, nl=25, nr=25, logs=T, ig1=NULL, ig2=NULL, \dots)
 }
 \arguments{
-\item{Z}{
-A permax object (output from permax())
+\item{x}{
+A permax object (output from \code{permax})
 }
 \item{data}{
-Matrix or data frame of expression levels used as input to permax()
+Matrix or data frame of expression levels used as input to \code{permax}
 }
 \item{nl}{
 The nl most significant genes in the lower tail will be plotted
@@ -35,7 +35,7 @@ The columns of data for cases in group 1 (see Details)
 The columns in group 2.  By default, all the columns not in group 1.
 }
 \item{...}{
-Additional arguments to image() and text() (see par())
+Additional arguments to \code{image} and \code{text} (see \code{par})
 none
 }}
 \section{Side Effects}{
@@ -43,10 +43,10 @@ An image plot is created on the current graphics device
 }
 \details{
 Values within a row of data are centered and normalized to have
-variance 1.  If ig1 is not given, then the values are centered to have
-mean 0.  If ig1 is given, the values are centered so the means of the
-columns in ig1 and ig2 are equal in magnitude and opposite in direction
-(usually ig1 and ig2 should match the values used in the permax()
+variance 1.  If \code{ig1} is not given, then the values are centered to have
+mean 0.  If \code{ig1} is given, the values are centered so the means of the
+columns in \code{ig1} and ig2 are equal in magnitude and opposite in direction
+(usually \code{ig1} and ig2 should match the values used in the \code{permax}
 call).  The plot is thus useful for comparing within rows, but
 differences in colors between rows have no meaning.
 

@@ -3,6 +3,6 @@
 # Distributed under the GNU Public License (see the file COPYING)
 
 ## edit as appropriate
-.First.lib <- function(a,b) {
-   library.dynam('permax.so',b,a) 
+.First.lib <- function(a, b) {
+   library.dynam('permax', b, a) 
 }

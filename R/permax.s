@@ -5,17 +5,17 @@
 permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
 ### data=data matrix; markers in rows, samples in columns, gene codes used for
 ### matching should be in dimnames(data)[[1]]
-### ig1=columns of data in group 1 
+### ig1=columns of data in group 1
 ### nperm <= 0 => compute full permutation distribution
 ### nperm >0 => compute nperm random samples
 ### if logs=T then summary statistics are computed from logs of data, and logs
 ###   are used in the t statistics (if rank=F)
-### if ranks=T then ranks are used in the t statistics (giving the Wilcoxon 
+### if ranks=T then ranks are used in the t statistics (giving the Wilcoxon
 ###   test)
-### min.np : data will be subset to only rows with at least min.np 
+### min.np : data will be subset to only rows with at least min.np
 ###   values > min(data) in the columns in ig1 and ig2
-### ig2 : column numbers for group 2.  If missing, all columns not in group 
-###   1 are assumed to be in group 2. min.np applies only to columns in ig1 
+### ig2 : column numbers for group 2.  If missing, all columns not in group
+###   1 are assumed to be in group 2. min.np applies only to columns in ig1
 ###   and ig2
 ### WHseed = Initial random number seed (vector of 3 integers).  If missing,
 ###   generated from the runif() function.  Not needed if all permutations
@@ -34,7 +34,12 @@ permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
 ###   mdiff: difference of means (if logs=T the diff of geometric means)
 ###   mrat: ratio of means (if logs=T ratio of geometric means)
   data <- as.matrix(data)
-  if (logs) data <- log(data)
+  if (logs) {
+	tmp <- data<=0
+	if(any(tmp))
+	  data[tmp] <- 1
+	data <- log(data)
+   }
   dmin <- min(data)
   if (missing(ig2)) {
     data <- cbind(data[,ig1],data[,-ig1])
@@ -99,29 +104,40 @@ permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
   Z
 }
 
-summary.permax <- function(Z,data,nl=25,nr=25,dig=3) {
-### prints the nl most significant in the lower tail and the nr most 
-###   significant in the upper tail, and returns the row.names of Z
+summary.permax <- function(object, data, nl=25, nr=25, dig=3, ...) {
+### prints the nl most significant in the lower tail and the nr most
+###   significant in the upper tail, and returns the row.names of object
 ###   corresponding to these two groups in a list
-###   if data (matrix) is specified and contains rows with dimnames matching 
+###   if data (matrix) is specified and contains rows with dimnames matching
 ###   the row.names
-### Z is a dataframe (output from permax), data is a matrix
+### object is a dataframe (output from permax), data is a matrix
 ### nl and nr are the number selected in the lower and upper tails
 ### dig=# digits to print
-  o <- order(Z$stat)
-  Zl <- Z[o[1:nl],]
-  opt <- options()
-  options(digits=dig)
-  print.data.frame(Zl[,-c(2,3,5,6,7)])
-  if (!missing(data)) {
-    data <- as.matrix(data)
-    print(data[match(row.names(Zl),dimnames(data)[[1]],0),])
-  }
-  Zr <- Z[rev(o)[1:nr],]
-  print.data.frame(Zr[,-c(2,3,4,6,7)])
-  if (!missing(data)) print(data[match(row.names(Zr),dimnames(data)[[1]],0),])
-  options(opt)
-  list(lower=row.names(Zl),upper=row.names(Zr))
+    ans<-list(nl=nl, nr=nr)
+    o <- order(object$stat)
+    ans$objectl <- object[o[1:nl],]
+    if (!missing(data)) {
+        data <- as.matrix(data)
+        ans$dataL <- data[match(row.names(ans$objectl), dimnames(data)[[1]],0),]
+    }
+    ans$objectr <- object[rev(o)[1:nr],]
+    if (!missing(data))
+        ans$dataR <- data[match(row.names(ans$objectr),dimnames(data)[[1]],0),]
+    ans$lower <- row.names(ans$Zl)
+    ans$upper <- row.names(ans$Zr)
+    class(ans) <- "summary.permax"
+    ans
+}
+
+print.summary.permax <- function(x, digits = max(3,
+                                    getOption("digits") - 3), ...)
+{
+    print(x$Zl[,-c(2,3,5,6,7)], digits=digits)
+    if( !is.null(x$dataL) )
+        print(x$dataL, digits=digits)
+    print(x$Zr[,-c(2,3,4,6,7)], digits=digits)
+    if( !is.null(x$dataR) )
+        print(x$dataR, digits=digits)
 }
 
 permsep <- function(data,ig1,nperm=0,ig2,WHseed=NULL) {
@@ -130,15 +146,15 @@ permsep <- function(data,ig1,nperm=0,ig2,WHseed=NULL) {
 ### ig1=columns of data in group 1
 ### nperm <= 0 => compute full permutation distribution
 ### nperm >0 => compute nperm random samples
-### ig2 : column numbers for group 2.  If missing, all columns not in group 
+### ig2 : column numbers for group 2.  If missing, all columns not in group
 ###   1 are assumed to be in group 2.
 ### WHseed = Initial random number seed (vector of 3 integers).  If missing,
 ###   generated from the runif() function.  Not needed if all permutations
 ###   are calculated.
-### Printed Output: # genes with complete separation (all in one group 
+### Printed Output: # genes with complete separation (all in one group
 ###   larger than all in the other, the proportion of permutations with
 ###   this many or more genes with complete separation (p-value)('permutation'
-###   actually means a distinct rearrangement of columns into 2 groups), the 
+###   actually means a distinct rearrangement of columns into 2 groups), the
 ###   average number of genes per permutation with complete separation,
 ###   and the proportion of permutations with any genes with complete
 ###   separation.           (Note: for each gene there
@@ -195,72 +211,73 @@ rowperm <- function(x) {
   x
 }
 
-plot.permax <- function(Z,data,nl=25,nr=25,logs=T,ig1=NULL,ig2=NULL,...) {
+plot.permax <- function(x, data, nl=25, nr=25, logs=T, ig1=NULL,
+                        ig2=NULL, ...) {
 # plots the expression levels for the most significant permax genes
-# Z = output from permax
+# x = output from permax
 # data = expression level array used as input to permax
 # nl, nr = # of most extreme genes in lower (nl) and upper (nr) tails to plot
 # logs = if true, function takes logs of values in data
-# if ig1 is given a non-null value (which must be a vector of integers 
+# if ig1 is given a non-null value (which must be a vector of integers
 #   corresponding to columns in data, then the rows of data will be
 #   standardized so the mean of the columns in ig1 and the mean of the
 #   columns in ig2 are equal in magnitude and opposite in sign (if ig2 is
 #   not specified, it defaults to include all the columns not in ig1)
 #   if ig1 is NULL, then the rows of data are standardized to have mean 0
 #   In either case, the rows are also standardized to have variance 1
-# A graphics device with support for appropriate image colors must be 
+# A graphics device with support for appropriate image colors must be
 #   specified prior to calling this function
-  o <- order(Z$stat)
-  Zl <- row.names(Z)[o[1:nl]]
-  Zr <- rev(row.names(Z)[rev(o)[1:nr]])
-  plot.expr(data[c(Zl,Zr),],logs=logs,ig1,ig2,...)
+  o <- order(x$stat)
+  xl <- row.names(x)[o[1:nl]]
+  xr <- rev(row.names(x)[rev(o)[1:nr]])
+  plot.expr(data[c(xl,xr),],logs=logs,ig1,ig2,...)
 }
 
-plot.expr <- function(data,logs=T,ig1=NULL,ig2=NULL,...) {
+plot.expr <- function(x, logs=T, ig1=NULL, ig2=NULL, ...) {
 # plots the expression levels for the rows of the arrary data
-# data = expression level array 
+# x = expression level array
 # logs = if true, function takes logs of values in data
-# if ig1 is given a non-null value (which must be a vector of integers 
+# if ig1 is given a non-null value (which must be a vector of integers
 #   corresponding to columns in data, then the rows of data will be
 #   standardized so the mean of the columns in ig1 and the mean of the
 #   columns in ig2 are equal in magnitude and opposite in sign (if ig2 is
 #   not specified, it defaults to include all the columns not in ig1)
 #   if ig1 is NULL, then the rows of data are standardized to have mean 0
 #   In either case, the rows are also standardized to have variance 1
-# A graphics device with support for appropriate image colors must be 
+# A graphics device with support for appropriate image colors must be
 #   specified prior to calling this function
 # All rows of data are plotted in the order given, so appropriate sorting
 #   and subsetting should be done prior to the call.
-  data <- as.matrix(data)
-  if (logs) data <- log(data)
-  m1 <- apply(data,1,mean)
-  data <- data-m1
-  s1 <- sqrt(apply(data^2,1,sum)/(ncol(data)-1))
-  data <- data/s1
+  x <- as.matrix(x)
+  if (logs) x <- log(x)
+  m1 <- apply(x,1,mean)
+  x <- x-m1
+  s1 <- sqrt(apply(x^2,1,sum)/(ncol(x)-1))
+  x <- x/s1
 # with unequal group sizes, standardization as above tends to guarantee
 # that the smaller group takes more extreme values than the larger.
-# the following shifts the overall mean so the mean of each group is 
+# the following shifts the overall mean so the mean of each group is
 # equal in magnitude and opposite in sign.
   if (!is.null(ig1)) {
-    if (is.null(ig2)) ig2 <- (1:ncol(data))[-ig1]
-    m1 <- apply(data[,ig1],1,mean)
-    m2 <- apply(data[,ig2],1,mean)
-    data <- data-(m1+m2)/2
+    if (is.null(ig2)) ig2 <- (1:ncol(x))[-ig1]
+    m1 <- apply(x[,ig1],1,mean)
+    m2 <- apply(x[,ig2],1,mean)
+    x <- x-(m1+m2)/2
   }
-  image(1:ncol(data),1:nrow(data),t(data),xaxt='n',yaxt='n', xlab="",
+  image(1:ncol(x),1:nrow(x),t(x),xaxt='n',yaxt='n', xlab="",
         ylab="",...)
-  text(-(ncol(data)/35), 1:nrow(data), dimnames(data)[[1]],xpd = T, ...)
-  text(1:ncol(data),-(nrow(data)/9),dimnames(data)[[2]],srt=270,xpd=T,...)
+  text(-(ncol(x)/35), 1:nrow(x), dimnames(x)[[1]],xpd = T, ...)
+  text(1:ncol(x),-(nrow(x)/9),dimnames(x)[[2]],srt=270,xpd=T,...)
 #  positioning is different in graphsheet() plots
-#  text(1:ncol(data),-(nrow(data)/7),dimnames(data)[[2]],srt=270,xpd=T,...)
+#  text(1:ncol(x),-(nrow(x)/7),dimnames(x)[[2]],srt=270,xpd=T,...)
   invisible()
 }
 
 permcor <- function(data,phen,nperm=1000,logs=T,ranks=F,min.np=1,WHseed=NULL) {
 ### data=data matrix; markers in rows, samples in columns, gene codes used for
 ### matching should be in dimnames(data)[[1]]
-### phen=vector of length ncol(data) giving the target attributes 
-###   (phenotype).  The rows most positively and negatively correlated 
+### phen=vector of length ncol(data) giving the target attributes
+###   (phenotype).  The rows most positively and negatively correlated
 ###   with phen are identified
 ### nperm <= 0 => compute full permutation distribution
 ### nperm >0 => compute nperm random permutation
@@ -268,8 +285,8 @@ permcor <- function(data,phen,nperm=1000,logs=T,ranks=F,min.np=1,WHseed=NULL) {
 ### if ranks=T then correlations are computed from within row ranks.
 ###   test)
 ### (In any case, the actualy values of phen are used)
-### min.np : data will be subset to only rows with at least min.np 
-###   values > min(data) 
+### min.np : data will be subset to only rows with at least min.np
+###   values > min(data)
 ### WHseed = Initial random number seed (vector of 3 integers).  If missing,
 ###   generated from the runif() function.  Not needed if all permutations
 ###   are calculated.

@@ -8,23 +8,23 @@ Represents values in the rows of a matrix as colored rectangles in an
 image plot
 }
 \usage{
-plot.expr(data, logs=T, ig1=NULL, ig2=NULL, \dots)
+plot.expr(x, logs=T, ig1=NULL, ig2=NULL, \dots)
 }
 \arguments{
-\item{data}{
-matrix or data from containing the values to be plotted.
+\item{x}{
+matrix or \code{data.frame} containing the values to be plotted.
 }
 \item{logs}{
 If logs=T, then log values are used.
 }
 \item{ig1}{
-The columns of data for cases in group 1 (see Details)
+The columns of \code{x} for cases in group 1 (see Details)
 }
 \item{ig2}{
 The columns in group 2.  By default, all the columns not in group 1.
 }
 \item{...}{
-Additional arguments to image() and text() (see par())
+Additional arguments to \code{image} and \code{text} (see \code{par})
 none
 }}
 \section{Side Effects}{
@@ -32,9 +32,12 @@ An image plot is created on the current graphics device
 }
 \details{
 Values within a row are centered and normalized to have variance 1.  If
-ig1 is not given, then the values are centered to have mean 0.  If ig1
-is given, the values are centered so the means of the columns in ig1
-and ig2 are equal in magnitude and opposite in direction.  The plot is
+\code{ig1} is not given, then the values are centered to have mean 0.
+If \code{ig1} 
+is given, the values are centered so the means of the columns in
+\code{ig1} 
+and \code{ig2} are equal in magnitude and opposite in direction.  The
+plot is 
 thus useful for comparing within rows, but differences in colors
 between rows have no meaning.
 
@@ -54,7 +57,7 @@ highest values would be a medium intensity gray).
 
 }
 \seealso{
-plot.permax
+\code{plot.permax}
 }
 \examples{
    set.seed(1292)

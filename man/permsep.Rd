@@ -1,5 +1,5 @@
 \name{permsep}
-\alias{[ermsep}
+\alias{permsep}
 \title{
 Permutation analysis for complete separation
 }
