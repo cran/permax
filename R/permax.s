@@ -2,7 +2,8 @@
 # Copyright (C) 2000 Robert Gray
 # Distributed under the GNU Public License (see the file COPYING)
 
-permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
+permax <- function(data,ig1,nperm=0,logs=TRUE, ranks=FALSE, min.np=1,
+                   ig2, WHseed=NULL) {
 ### data=data matrix; markers in rows, samples in columns, gene codes used for
 ### matching should be in dimnames(data)[[1]]
 ### ig1=columns of data in group 1
@@ -49,7 +50,7 @@ permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
   n1 <- length(ig1)
   n2 <- ncol(data)-n1
   ig1 <- 1:n1
-  d1 <- data[,ig1,drop=F]
+  d1 <- data[,ig1,drop=FALSE]
   if (n1>1) {
     m1 <- c(d1 %*% rep(1/n1,n1))
     s1 <- sqrt((d1-m1)^2 %*% rep(1/(n1-1),n1))
@@ -61,7 +62,7 @@ permax <- function(data,ig1,nperm=0,logs=T,ranks=F,min.np=1,ig2,WHseed=NULL) {
     s1 <- rep(0,length(d1))
     npos1 <- ifelse(d1>dmin,1,0)
   }
-  d1 <- data[,-ig1,drop=F]
+  d1 <- data[,-ig1,drop=FALSE]
   m2 <- c(d1 %*% rep(1/n2,n2))
   s2 <- if(n2>1) sqrt((d1-m2)^2 %*% rep(1/(n2-1),n2)) else rep(0,nrow(d2))
   d1[d1<=dmin] <- 0
@@ -211,7 +212,7 @@ rowperm <- function(x) {
   x
 }
 
-plot.permax <- function(x, data, nl=25, nr=25, logs=T, ig1=NULL,
+plot.permax <- function(x, data, nl=25, nr=25, logs=TRUE, ig1=NULL,
                         ig2=NULL, ...) {
 # plots the expression levels for the most significant permax genes
 # x = output from permax
@@ -233,7 +234,7 @@ plot.permax <- function(x, data, nl=25, nr=25, logs=T, ig1=NULL,
   plot.expr(data[c(xl,xr),],logs=logs,ig1,ig2,...)
 }
 
-plot.expr <- function(x, logs=T, ig1=NULL, ig2=NULL, ...) {
+plot.expr <- function(x, logs=TRUE, ig1=NULL, ig2=NULL, ...) {
 # plots the expression levels for the rows of the arrary data
 # x = expression level array
 # logs = if true, function takes logs of values in data
@@ -266,14 +267,15 @@ plot.expr <- function(x, logs=T, ig1=NULL, ig2=NULL, ...) {
   }
   image(1:ncol(x),1:nrow(x),t(x),xaxt='n',yaxt='n', xlab="",
         ylab="",...)
-  text(-(ncol(x)/35), 1:nrow(x), dimnames(x)[[1]],xpd = T, ...)
-  text(1:ncol(x),-(nrow(x)/9),dimnames(x)[[2]],srt=270,xpd=T,...)
+  text(-(ncol(x)/35), 1:nrow(x), dimnames(x)[[1]],xpd = TRUE, ...)
+  text(1:ncol(x),-(nrow(x)/9),dimnames(x)[[2]],srt=270,xpd=TRUE,...)
 #  positioning is different in graphsheet() plots
-#  text(1:ncol(x),-(nrow(x)/7),dimnames(x)[[2]],srt=270,xpd=T,...)
+#  text(1:ncol(x),-(nrow(x)/7),dimnames(x)[[2]],srt=270,xpd=TRUE,...)
   invisible()
 }
 
-permcor <- function(data,phen,nperm=1000,logs=T,ranks=F,min.np=1,WHseed=NULL) {
+permcor <- function(data, phen, nperm=1000, logs=TRUE, ranks=FALSE,
+                    min.np=1, WHseed=NULL) {
 ### data=data matrix; markers in rows, samples in columns, gene codes used for
 ### matching should be in dimnames(data)[[1]]
 ### phen=vector of length ncol(data) giving the target attributes
