@@ -1,0 +1,11 @@
+permax                   2-sample permutation t-tests for high
+                         dimensional data
+permcor                  permutation tests for correlations in high
+                         dimensional data
+permsep                  Permutation analysis for complete separation
+plot.expr                Color image plot of gene expression levels
+plot.permax              Image plot of the most significant genes
+                         (attributes) from a permax() analysis
+rowperm                  Generates random permutations within rows of a
+                         matrix
+summary.permax           Summarizes the output of permax()
