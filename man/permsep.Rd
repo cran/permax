@@ -10,7 +10,8 @@ completely separate the two groups (all values in one group strictly
 larger than in the other), and a permutation p-value for this quantity.
 }
 \usage{
-permsep(data, ig1, nperm=0, ig2, WHseed=NULL)
+permsep(data, ig1, nperm=0, ig2=NULL, WHseed=NULL, cluster=NULL,
+        stratify=FALSE, permute.cluster=FALSE)
 }
 \arguments{
 \item{data}{
@@ -18,28 +19,47 @@ Data matrix or data frame.  Each case is a column, and each row is an
 attribute (the opposite of the standard configuration).
 }
 \item{ig1}{
-The columns of data corresponding to group 1
+The column numbers in \code{data} corresponding to group 1
 }
 \item{nperm}{
-The number of random permutations to use in computing the p-values.
-The default is to use the entire permutation distribution, which is
+The number of random combinations to use in computing the p-values.
+If \code{nperm <= 0}, then all possible combinations are enumerated, which is
 only feasible if the sample sizes are fairly small
 }
 \item{ig2}{
-The columns of data corresponding to group 2.  The default is to
-include all columns not in ig1 in group 2.  When both ig1 and ig2 are
-given, columns not in either are excluded.
+The column numbers in \code{data} corresponding to group 2.  If
+\code{NULL}, all columns not in \code{ig1} are assumed to be in group 2.
+When both \code{ig1} and \code{ig2} are given, columns not in either are
+excluded.
 }
 \item{WHseed}{
-Initial random number seed (a vector of 3 integers).  If missing, an
-initial seed is generated from the runif() function.  Not needed if all
-permutations are calculated.
+Initial random number seed (a vector of 3 integers).  If \code{NULL}, an
+initial seed is generated from the \code{\link{runif}()} function.  Not
+used if \code{nperm <= 0}.
+}
 
+\item{cluster}{
+  A vector of cluster membership indicators for the columns of
+  \code{data}.  Distinct values of \code{cluster} define distinct
+  clusters or blocks.  
+}
+\item{stratify}{
+If \code{TRUE}, comparisons are only made within clusters.  Only
+applicable if \code{cluster} is given.
+}
+\item{permute.cluster}{If \code{FALSE}, columns are permuted between
+  groups within
+  clusters.  If \code{TRUE}, clusters are permuted between groups.  The latter
+  is only allowed if all columns in each cluster are in the same group.  Only
+  applicable if \code{cluster} is given.   
+}
+}
 
+\value{
 Prints a vector giving the \# genes with complete separation (all in one group 
-larger than all in the other, the proportion of permutations with
-this many or more genes with complete separation (p-value) ('permutation'
-actually means a distinct rearrangement of columns into 2 groups), the 
+larger than all in the other), the proportion of permutations with
+this many or more genes with complete separation (p-value) (`permutation'
+actually means a distinct combination of columns into 2 groups), the 
 average number of genes per permutation with complete separation, 
 and the proportion of permutations with any genes with complete
 separation.  
@@ -47,40 +67,61 @@ separation.
 
 The value returned is a list with components \code{ics} = a vector indicating
 (with 1) which rows of data have complete separation, and \code{dtcs} = a
-vector containing the printed output.
+vector containing the printed output.  Also has an attribute \code{call}
+giving the call to \code{permsep}.
 
 
 Also, if \code{nperm}>0, then the output includes attributes \code{seed.start}
 giving the initial random number seed, and \code{seed.end} giving the value
 of the seed at the end.  These can be accessed with the
-\code{\link{attributes}} 
-and \code{\link{attr}} functions.
+\code{\link{attributes}()} 
+and \code{\link{attr}()} functions.
 
-
-}}
+}
 \details{
-For each gene there will be 0, 1 or 2 rearrangements with complete
-separation, depending on the number of unique values and the sizes of
-the two groups.  Adding these numbers over genes and dividing by the
-number of rearrangements gives the average number per permutation.  The
-value returned averages only over the rearrangements actually used,
-though.
+  
+For each gene, there will be 0, 1 or 2 combinations of columns into 2
+groups with complete separation, depending on the number of unique
+values and the sizes of the two groups.  Adding these numbers over genes
+and dividing by the number of combinations gives the average number per
+combination.  The value returned averages only over the combinations
+actually used, though.
 
+If \code{stratify=TRUE}, then separation is only checked within
+clusters.  In this case, an attribute is completely separated if the
+groups are completely separated (in the same direction) within each
+cluster, even if values from different clusters overlap.
+When \code{cluster} is specified and \code{stratify=FALSE}, separation
+is defined without regard to cluster membership, but only within cluster
+permutations are examined.  If \code{permute.cluster=TRUE}, then
+it is assumed that group or treatment is defined at the cluster level
+(that is, all members of each cluster are in the same group).  In this
+case separation is again defined without regard to cluster membership, but
+only whole clusters are permuted to preserve the within cluster
+dependencies.  If the data come from a split plot experiment, then the
+\code{stratify=TRUE} option would be appropriate for the subplot
+effects, while the \code{permute.cluster=TRUE} option would examine the
+whole plot effects.  The combination \code{stratify=TRUE} and
+\code{permute.cluster=TRUE} is not allowed.
+
+In this function, the permutation distribution is generated by selecting
+combinations of columns to be in group 1, rather than by generating full
+permutations.
 
 It is strongly recommended that different seeds be used for different
-runs, and ideally the final seed from one run, attr(output,'seed.end'),
+runs, and ideally the final seed from one run, \code{attr(output,'seed.end')},
 would be used as the initial seed in the next run.
 
 
 }
 \seealso{
-permax
+\code{\link{permax}}
 }
 \examples{
    ngenes <- 1000
    m1 <- rnorm(ngenes,4,1)
    m2 <- rnorm(ngenes,4,1)
-    exp1 <- cbind(matrix(exp(rnorm(ngenes*5,m1,1)),nrow=ngenes),
+   exp1 <- cbind(matrix(exp(rnorm(ngenes*5,m1,1)),nrow=ngenes),
                matrix(exp(rnorm(ngenes*10,m2,1)),nrow=ngenes))
    exp1[exp1<20] <- 20
    sub <- exp1>20 & exp1<150
@@ -91,8 +132,16 @@ permax
                      paste('sample',1:ncol(exp1),sep=''))
    exp1 <- round(exp1)
 
- uuu <- permsep(exp1,1:5)
-
+   uuu <- permsep(exp1,1:5)
+# columns 1,2,6:9 from cluster 1, columns 3,4,10:13 from cluster 2,
+# columns 5,14,15 from cluster 3
+   clustind <- c(1,1,2,2,3,1,1,1,1,2,2,2,2,3,3)
+   uuu <- permsep(exp1,1:5,cluster=clustind)
+   uuu <- permsep(exp1,1:5,cluster=clustind,stratify=TRUE,
+            WHseed=attr(uuu,'seed.end'))
+# permute clusters
+   clust2 <- c(1,1,2,2,2,3,3,4,4,5,5,5,6,6,6)
+   uuu <- permsep(exp1,1:5,cluster=clust2,nperm=0,permute.cluster=TRUE)
 }
 \keyword{htest}
 % Converted by Sd2Rd version 1.19.
