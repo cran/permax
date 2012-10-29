@@ -1,0 +1,17 @@
+94d55d512a9ba36caa9b7df079bae19f *COPYING
+a74e1f36e2aa73df69ccdb5a7f2978c0 *DESCRIPTION
+337e58c756a32cb164650814d4282e3a *INDEX
+9fdfeb11f7ddba6f3aab9aaa6b1ac5dd *NAMESPACE
+440b9f9f41762d85d82bc3577b1c28b8 *R/permax.s
+2899557dab04ce2c8b5210c3bdc6f09a *R/plot.expr.R
+337ced71f5cc31d140d913dcbd556346 *R/zzz.R
+e125d10a0e0a1bc6e2f7f7f86a3bc7da *man/permax.Rd
+fda0f482266ee068a1a71de7b42a7a01 *man/permcor.Rd
+c0aaa25edefbfcec812c5c42d9e956e2 *man/permsep.Rd
+f1b7381a1c7427fe61fc98fc1f16d411 *man/plot.expr.Rd
+c8f09f40e729b048f2539e370a7c292e *man/plot.permax.Rd
+bf9c665e17527b5bf970572cd0e40aa5 *man/rowperm.Rd
+c66b9fcac7ef40239cab0da04a6ace82 *man/summary.permax.Rd
+d8627cea471b4ba22fbcb130f8878e56 *src/pt.f
+ebac6ea38d73aaadbad56ab615b6f536 *tests/test.out
+0b5bbf8a9cb34193d8c12e9119320095 *tests/test.s

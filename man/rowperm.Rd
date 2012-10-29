@@ -4,21 +4,18 @@
 Generates random permutations within rows of a matrix
 }
 \description{
-Given a matrix \code{x}, returns a copy of \code{x} with a separate random
+Given a matrix x, returns a copy of x with a separate random
 permutations applied within each row.
 }
 \usage{
 rowperm(x)
 }
 \arguments{
-  \item{x}{
-    a numeric matrix
-  }
-}
-\value{
+\item{x}{
+a numeric matrix
 A numeric matrix with each row containing the elements from the
-corresponding row of \code{x} permuted in a random order.
-}
+corresponding row of x permuted in a random order.
+}}
 \examples{
  x <- matrix(1:12,3)
  x
